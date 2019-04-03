@@ -18,11 +18,11 @@ from multiprocessing.pool import ThreadPool
 # tf.app.flags.DEFINE_integer('model_version', 1, 'version number of the model.')
 # FLAGS = tf.app.flags.FLAGS
 
-# import grpc
-# from tensorflow_serving.apis import predict_pb2
-# from tensorflow_serving.apis import prediction_service_pb2_grpc
+import grpc
+from tensorflow_serving.apis import predict_pb2
+from tensorflow_serving.apis import prediction_service_pb2_grpc
 
-# from tensorflow.python.framework import tensor_util
+from tensorflow.python.framework import tensor_util
 # # Yitao-TLS-End
 
 train_stats = (
@@ -99,9 +99,20 @@ def return_predict(self, im):
     h, w, _ = im.shape
     im = self.framework.resize_input(im)
     this_inp = np.expand_dims(im, 0)
-    feed_dict = {self.inp : this_inp}
+    # feed_dict = {self.inp : this_inp}
 
-    out = self.sess.run(self.out, feed_dict)[0]
+    # out = self.sess.run(self.out, feed_dict)[0]
+
+    self.internal_request = predict_pb2.PredictRequest()
+    self.internal_request.model_spec.name = 'actdet_yolo'
+    self.internal_request.model_spec.signature_name = 'predict_images'
+    self.internal_request.inputs['input'].CopyFrom(
+        tf.contrib.util.make_tensor_proto(this_inp, dtype = tf.float32, shape=this_inp.shape))
+
+    self.internal_result = self.istub.Predict(self.internal_request, 10.0)
+
+    result_value = tensor_util.MakeNdarray(self.internal_result.outputs['output'])
+    out = result_value[0]
 
     # if True:
     #     # Yitao-TLS-Begin

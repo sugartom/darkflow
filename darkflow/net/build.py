@@ -22,11 +22,11 @@ import os
 # tf.app.flags.DEFINE_integer('model_version', 1, 'version number of the model.')
 # FLAGS = tf.app.flags.FLAGS
 
-# import grpc
-# from tensorflow_serving.apis import predict_pb2
-# from tensorflow_serving.apis import prediction_service_pb2_grpc
+import grpc
+from tensorflow_serving.apis import predict_pb2
+from tensorflow_serving.apis import prediction_service_pb2_grpc
 
-# from tensorflow.python.framework import tensor_util
+from tensorflow.python.framework import tensor_util
 # # Yitao-TLS-End
 
 class TFNet(object):
@@ -85,17 +85,20 @@ class TFNet(object):
     
     self.meta = darknet.meta
 
-    self.say('\nBuilding net ...')
-    start = time.time()
-    self.graph = tf.Graph()
-    device_name = FLAGS.gpuName \
-      if FLAGS.gpu > 0.0 else None
-    with tf.device(device_name):
-      with self.graph.as_default() as g:
-        self.build_forward()
-        self.setup_meta_ops()
-    self.say('Finished in {}s\n'.format(
-      time.time() - start))
+    self.say('\nBuilding net ... Fake ...')
+    # start = time.time()
+    # self.graph = tf.Graph()
+    # device_name = FLAGS.gpuName \
+    #   if FLAGS.gpu > 0.0 else None
+    # with tf.device(device_name):
+    #   with self.graph.as_default() as g:
+    #     self.build_forward()
+    #     self.setup_meta_ops()
+    # self.say('Finished in {}s\n'.format(
+    #   time.time() - start))
+
+    ichannel = grpc.insecure_channel("localhost:8500")
+    self.istub = prediction_service_pb2_grpc.PredictionServiceStub(ichannel)
   
   def build_from_pb(self):
     with tf.gfile.FastGFile(self.FLAGS.pbLoad, "rb") as f:
@@ -118,27 +121,28 @@ class TFNet(object):
     self.setup_meta_ops()
   
   def build_forward(self):
-    verbalise = self.FLAGS.verbalise
+    pass
+    # verbalise = self.FLAGS.verbalise
 
-    # Placeholders
-    inp_size = [None] + self.meta['inp_size']
-    self.inp = tf.placeholder(tf.float32, inp_size, 'input')
-    self.feed = dict() # other placeholders
+    # # Placeholders
+    # inp_size = [None] + self.meta['inp_size']
+    # self.inp = tf.placeholder(tf.float32, inp_size, 'input')
+    # self.feed = dict() # other placeholders
 
-    # Build the forward pass
-    state = identity(self.inp)
-    roof = self.num_layer - self.ntrain
-    self.say(HEADER, LINE)
-    for i, layer in enumerate(self.darknet.layers):
-      scope = '{}-{}'.format(str(i),layer.type)
-      args = [layer, state, i, roof, self.feed]
-      state = op_create(*args)
-      mess = state.verbalise()
-      self.say(mess)
-    self.say(LINE)
+    # # Build the forward pass
+    # state = identity(self.inp)
+    # roof = self.num_layer - self.ntrain
+    # self.say(HEADER, LINE)
+    # for i, layer in enumerate(self.darknet.layers):
+    #   scope = '{}-{}'.format(str(i),layer.type)
+    #   args = [layer, state, i, roof, self.feed]
+    #   state = op_create(*args)
+    #   mess = state.verbalise()
+    #   self.say(mess)
+    # self.say(LINE)
 
-    self.top = state
-    self.out = tf.identity(state.out, name='output')
+    # self.top = state
+    # self.out = tf.identity(state.out, name='output')
 
   def setup_meta_ops(self):
     cfg = dict({
@@ -162,16 +166,16 @@ class TFNet(object):
       self.summary_op = tf.summary.merge_all()
       self.writer = tf.summary.FileWriter(self.FLAGS.summary + 'train')
     
-    self.sess = tf.Session(config = tf.ConfigProto(**cfg))
-    self.sess.run(tf.global_variables_initializer())
+    # self.sess = tf.Session(config = tf.ConfigProto(**cfg))
+    # self.sess.run(tf.global_variables_initializer())
 
     if not self.ntrain: return
     self.saver = tf.train.Saver(tf.global_variables(), 
       max_to_keep = self.FLAGS.keep)
     if self.FLAGS.load != 0: self.load_from_ckpt()
     
-    if self.FLAGS.summary:
-      self.writer.add_graph(self.sess.graph)
+    # if self.FLAGS.summary:
+      # self.writer.add_graph(self.sess.graph)
 
     # if True:
     #   # Yitao-TLS-Begin
