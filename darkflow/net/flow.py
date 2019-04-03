@@ -5,6 +5,26 @@ import tensorflow as tf
 import pickle
 from multiprocessing.pool import ThreadPool
 
+# # Yitao-TLS-Begin
+# import os
+# import sys
+# from tensorflow.python.saved_model import builder as saved_model_builder
+# from tensorflow.python.saved_model import signature_constants
+# from tensorflow.python.saved_model import signature_def_utils
+# from tensorflow.python.saved_model import tag_constants
+# from tensorflow.python.saved_model import utils
+# from tensorflow.python.util import compat
+
+# tf.app.flags.DEFINE_integer('model_version', 1, 'version number of the model.')
+# FLAGS = tf.app.flags.FLAGS
+
+# import grpc
+# from tensorflow_serving.apis import predict_pb2
+# from tensorflow_serving.apis import prediction_service_pb2_grpc
+
+# from tensorflow.python.framework import tensor_util
+# # Yitao-TLS-End
+
 train_stats = (
     'Training statistics: \n'
     '\tLearning rate : {}\n'
@@ -75,13 +95,48 @@ def train(self):
 
 def return_predict(self, im):
     assert isinstance(im, np.ndarray), \
-				'Image is not a np.ndarray'
+        'Image is not a np.ndarray'
     h, w, _ = im.shape
     im = self.framework.resize_input(im)
     this_inp = np.expand_dims(im, 0)
     feed_dict = {self.inp : this_inp}
 
     out = self.sess.run(self.out, feed_dict)[0]
+
+    # if True:
+    #     # Yitao-TLS-Begin
+    #     # init_op = tf.initialize_all_variables()
+    #     # self.session.run(init_op)
+
+    #     export_path_base = "actdet_yolo"
+    #     export_path = os.path.join(
+    #         compat.as_bytes(export_path_base),
+    #         compat.as_bytes(str(FLAGS.model_version)))
+    #     print('Exporting trained model to ', export_path)
+    #     builder = saved_model_builder.SavedModelBuilder(export_path)
+
+    #     tensor_info_x = tf.saved_model.utils.build_tensor_info(self.inp)
+    #     tensor_info_y = tf.saved_model.utils.build_tensor_info(self.out)
+
+    #     prediction_signature = tf.saved_model.signature_def_utils.build_signature_def(
+    #         inputs={'input': tensor_info_x},
+    #         outputs={'output': tensor_info_y},
+    #         method_name=tf.saved_model.signature_constants.PREDICT_METHOD_NAME)
+
+    #     legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
+    #     builder.add_meta_graph_and_variables(
+    #         self.sess, [tf.saved_model.tag_constants.SERVING],
+    #         signature_def_map={
+    #             'predict_images':
+    #                 prediction_signature,
+    #         },
+    #         legacy_init_op=legacy_init_op)
+
+    #     builder.save()
+
+    #     print('Done exporting!')
+    #     # Yitao-TLS-End
+
     boxes = self.framework.findboxes(out)
     threshold = self.FLAGS.threshold
     boxesInfo = list()
