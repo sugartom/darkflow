@@ -93,7 +93,7 @@ def train(self):
 
     if ckpt: _save_ckpt(self, *args)
 
-def return_predict(self, im):
+def return_predict(self, im, istub):
     assert isinstance(im, np.ndarray), \
         'Image is not a np.ndarray'
     h, w, _ = im.shape
@@ -109,7 +109,7 @@ def return_predict(self, im):
     self.internal_request.inputs['input'].CopyFrom(
         tf.contrib.util.make_tensor_proto(this_inp, dtype = tf.float32, shape=this_inp.shape))
 
-    self.internal_result = self.istub.Predict(self.internal_request, 10.0)
+    self.internal_result = istub.Predict(self.internal_request, 10.0)
 
     result_value = tensor_util.MakeNdarray(self.internal_result.outputs['output'])
     out = result_value[0]

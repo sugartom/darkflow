@@ -9,25 +9,25 @@ from ..dark.darknet import Darknet
 import json
 import os
 
-# # Yitao-TLS-Begin
-# import os
-# import sys
-# from tensorflow.python.saved_model import builder as saved_model_builder
-# from tensorflow.python.saved_model import signature_constants
-# from tensorflow.python.saved_model import signature_def_utils
-# from tensorflow.python.saved_model import tag_constants
-# from tensorflow.python.saved_model import utils
-# from tensorflow.python.util import compat
+# # # Yitao-TLS-Begin
+# # import os
+# # import sys
+# # from tensorflow.python.saved_model import builder as saved_model_builder
+# # from tensorflow.python.saved_model import signature_constants
+# # from tensorflow.python.saved_model import signature_def_utils
+# # from tensorflow.python.saved_model import tag_constants
+# # from tensorflow.python.saved_model import utils
+# # from tensorflow.python.util import compat
 
-# tf.app.flags.DEFINE_integer('model_version', 1, 'version number of the model.')
-# FLAGS = tf.app.flags.FLAGS
+# # tf.app.flags.DEFINE_integer('model_version', 1, 'version number of the model.')
+# # FLAGS = tf.app.flags.FLAGS
 
-import grpc
-from tensorflow_serving.apis import predict_pb2
-from tensorflow_serving.apis import prediction_service_pb2_grpc
+# import grpc
+# from tensorflow_serving.apis import predict_pb2
+# from tensorflow_serving.apis import prediction_service_pb2_grpc
 
-from tensorflow.python.framework import tensor_util
-# # Yitao-TLS-End
+# from tensorflow.python.framework import tensor_util
+# # # Yitao-TLS-End
 
 class TFNet(object):
 
@@ -97,8 +97,8 @@ class TFNet(object):
     # self.say('Finished in {}s\n'.format(
     #   time.time() - start))
 
-    ichannel = grpc.insecure_channel("localhost:8500")
-    self.istub = prediction_service_pb2_grpc.PredictionServiceStub(ichannel)
+    # ichannel = grpc.insecure_channel("localhost:8500")
+    # self.istub = prediction_service_pb2_grpc.PredictionServiceStub(ichannel)
   
   def build_from_pb(self):
     with tf.gfile.FastGFile(self.FLAGS.pbLoad, "rb") as f:
