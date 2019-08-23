@@ -93,7 +93,7 @@ def train(self):
 
     if ckpt: _save_ckpt(self, *args)
 
-def return_predict(self, im, istub):
+def return_predict(self, im, model_name, istub):
     assert isinstance(im, np.ndarray), \
         'Image is not a np.ndarray'
     h, w, _ = im.shape
@@ -104,7 +104,7 @@ def return_predict(self, im, istub):
     # out = self.sess.run(self.out, feed_dict)[0]
 
     self.internal_request = predict_pb2.PredictRequest()
-    self.internal_request.model_spec.name = 'actdet_yolo'
+    self.internal_request.model_spec.name = model_name
     self.internal_request.model_spec.signature_name = 'predict_images'
     self.internal_request.inputs['input'].CopyFrom(
         tf.contrib.util.make_tensor_proto(this_inp, dtype = tf.float32, shape=this_inp.shape))
