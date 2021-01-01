@@ -93,6 +93,46 @@ def train(self):
 
     if ckpt: _save_ckpt(self, *args)
 
+def return_batched_predict(self, batched_im, model_name, istub):
+  # print("Yitao Test")
+  h, w, _ = batched_im[0].shape
+
+  internal_request = predict_pb2.PredictRequest()
+  internal_request.model_spec.name = model_name
+  internal_request.model_spec.signature_name = 'predict_images'
+  internal_request.inputs['input'].CopyFrom(
+    tf.contrib.util.make_tensor_proto(batched_im, dtype = tf.float32, shape = batched_im.shape))
+
+  internal_result = istub.Predict(internal_request, 10.0)
+
+  result_value = tensor_util.MakeNdarray(internal_result.outputs['output'])
+  # print(len(result_value))
+  # print(result_value)
+
+  batched_result = []
+
+  for out in result_value:
+    boxes = self.framework.findboxes(out)
+    threshold = self.FLAGS.threshold
+    boxesInfo = list()
+    for box in boxes:
+      tmpBox = self.framework.process_box(box, h, w, threshold)
+      if tmpBox is None:
+        continue
+      boxesInfo.append({
+          "label": tmpBox[4],
+          "confidence": tmpBox[6],
+          "topleft": {
+              "x": tmpBox[0],
+              "y": tmpBox[2]},
+          "bottomright": {
+              "x": tmpBox[1],
+              "y": tmpBox[3]}
+      })
+    batched_result.append(boxesInfo)
+
+  return batched_result
+
 def return_predict(self, im, model_name, istub):
     assert isinstance(im, np.ndarray), \
         'Image is not a np.ndarray'
